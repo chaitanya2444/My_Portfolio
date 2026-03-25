@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ravuri LeelaChaitanya | Gen AI Developer & Java Systems Engineer</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Three.js Global Scripts for local file:// execution -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+</head>
+<body>
+    <!-- BACKGROUND CANVAS -->
+    <canvas id="neural-canvas"></canvas>
+
+    <!-- SIDE NAVIGATION MENU -->
+    <nav id="side-nav" style="position: fixed; left: 40px; top: 50%; transform: translateY(-50%); z-index: 100; display: none; flex-direction: column; gap: 15px;">
+        <button class="nav-btn" data-target="all">HOME</button>
+        <button class="nav-btn" data-target="about">ABOUT</button>
+        <button class="nav-btn" data-target="skills">SKILLS</button>
+        <button class="nav-btn" data-target="projects">PROJECTS</button>
+        <button class="nav-btn" data-target="education">EDUCATION</button>
+        <button class="nav-btn" data-target="experience">EXPERIENCE</button>
+        <button class="nav-btn" data-target="contact">CONTACT</button>
+    </nav>
+    <style>
+        .nav-btn {
+            background: rgba(5, 5, 5, 0.4);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            color: #00f5ff;
+            padding: 12px 20px 12px 25px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 245, 255, 0.1);
+            text-transform: uppercase;
+        }
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+            background: #00f5ff;
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+            transform-origin: bottom;
+        }
+        .nav-btn:hover {
+            background: rgba(0, 245, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.4);
+            text-shadow: 0 0 10px #00f5ff;
+            transform: translateX(10px);
+            border-color: #00f5ff;
+        }
+        .nav-btn:hover::before {
+            transform: scaleY(1);
+        }
+        .nav-btn.active {
+            background: rgba(0, 245, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.6);
+            border-color: #00f5ff;
+            transform: translateX(15px);
+        }
+        .nav-btn.active::before {
+            transform: scaleY(1);
+            background: #fff;
+        }
+    </style>
+
+    <!-- GLOBAL RLC LOGO & FOOTER -->
+    <div id="global-rlc-logo" style="position: fixed; top: 40px; right: 40px; z-index: 90; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, rgba(0,245,255,0.1), transparent); border: 1px solid #00f5ff; font-family: 'Inter', sans-serif; font-weight: 900; font-size: 1.2rem; color: #00f5ff; box-shadow: 0 0 15px rgba(0,245,255,0.3); pointer-events: none; backdrop-filter: blur(5px);">RLC</div>
+    <div id="global-rlc-footer" style="position: fixed; bottom: 20px; width: 100%; text-align: center; z-index: 90; pointer-events: none; display: flex; justify-content: center; align-items: center;">
+        <span style="background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px; border: 1px solid rgba(0,245,255,0.2); color: rgba(255,255,255,0.5); font-family: 'Fira Code', monospace; font-size: 0.8rem; letter-spacing: 2px; backdrop-filter: blur(5px);">DONE BY <strong style="color: #00f5ff;">RLC</strong></span>
+    </div>
+
+    <!-- BACK TO ORBIT -->
+    <button id="back-btn" class="btn btn-secondary glow-acid" style="position: fixed; top: 110px; right: 40px; z-index: 100; display: none;">&#8592; Back to Orbit</button>
+    
+    <div id="galaxy-title" style="position: fixed; top: 15%; left: 50%; transform: translate(-50%, -50%); z-index: 100; text-align: center; pointer-events: none; width: 100%;">
+        <h1 class="glow-cyan" style="font-size: clamp(2rem, 5vw, 4rem); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 12px; opacity: 0.9;">Select any galaxy to enter</h1>
+    </div>
+
+    <main>
+        <!-- HERO REPLACED BY ABOUT BENTO -->
+
+        <!-- ABOUT ME (BENTO STARTS IMMEDIATELY) -->
+        <section id="about" class="container reveal" style="position: relative; padding-top: 2rem !important; margin-top: 0 !important;">
+            
+            <style>
+                .bento-grid { display: grid; grid-template-columns: 2.5fr 1fr; gap: 30px; margin-bottom: 3rem; }
+                @media (max-width: 900px) { .bento-grid { grid-template-columns: 1fr; } }
+                .resume-download { border: 1px solid rgba(255,0,255,0.3); transition: all 0.3s ease; cursor: pointer; text-decoration: none; border-radius: 20px; text-align: center; overflow: hidden; position: relative; }
+                .resume-download:hover { background: rgba(255,0,255,0.15); box-shadow: 0 0 40px rgba(255,0,255,0.2); border-color: #ff00ff; transform: translateY(-5px); }
+                .resume-download .fetch-btn { 
+                    margin-top: 20px;
+                    padding: 10px 20px;
+                    background: rgba(255, 0, 255, 0.1);
+                    border: 1px solid #ff00ff;
+                    color: #fff;
+                    border-radius: 10px;
+                    font-weight: bold;
+                    letter-spacing: 1px;
+                    font-size: 0.9rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    animation: pulse-pink 2s infinite;
+                }
+                @keyframes pulse-pink {
+                    0% { box-shadow: 0 0 0 0 rgba(255, 0, 255, 0.4); }
+                    70% { box-shadow: 0 0 0 10px rgba(255, 0, 255, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(255, 0, 255, 0); }
+                }
+            </style>
+
+            <!-- BENTO INTRO GRID -->
+            <div class="bento-grid">
+                <!-- INTRO CARD -->
+                <div class="glass-card tilt-element" style="border-top: 3px solid #00f5ff; padding: 3rem; display: flex; flex-direction: column; justify-content: center; background: rgba(0, 10, 20, 0.6); border-radius: 20px;">
+                    <p style="color: #00f5ff; font-family: 'Fira Code', monospace; letter-spacing: 2px; margin-bottom: 10px; font-size: 0.9rem;">► SYSTEM.INITIALIZE</p>
+                    <h1 style="font-size: clamp(2.5rem, 4vw, 4rem); color: #fff; margin-bottom: 10px; font-weight: 900; line-height: 1.1;">Hi, I'm <span class="cyan-text">R Leelachaitanya</span>.</h1>
+                    <h3 style="font-size: clamp(1.2rem, 2vw, 1.8rem); color: #aaa; margin-bottom: 25px; font-weight: 500;">Associate AI Engineer</h3>
+                    <p style="color: #ccc; font-size: 1.15rem; line-height: 1.8; max-width: 95%; margin-bottom: 30px;">Passionate about expanding the boundaries of Generative AI, engineering autonomous systems, and perpetually learning unique, cutting-edge paradigms to synthesize the intelligent web.</p>
+                    <div>
+                        <button class="nav-btn" data-target="experience" style="background: rgba(0,245,255,0.1); border: 1px solid #00f5ff; color: #00f5ff; padding: 12px 35px; border-radius: 30px; font-weight: bold; font-family: 'Inter', sans-serif; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; text-transform: uppercase; letter-spacing: 2px; box-shadow: 0 0 15px rgba(0,245,255,0.2);" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 0 25px rgba(0,245,255,0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 0 15px rgba(0,245,255,0.2)';">See Work</button>
+                    </div>
+                </div>
+
+                <!-- RESUME CARD -->
+                <a href="assets/R_Leelachaitanya_Resume.pdf" download class="glass-card tilt-element resume-download" style="padding: 3rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(20, 0, 20, 0.6); border-top: 3px solid #ff00ff;">
+                    <span style="color: #ff00ff; font-family: 'Fira Code', monospace; letter-spacing: 2px; margin-bottom: 10px; font-size: 0.8rem;">[ UNLOCK_ACCESS ]</span>
+                    <h2 style="font-size: clamp(1.8rem, 2.5vw, 2.5rem); color: #fff; margin-bottom: 5px; font-weight: 800;">Resume<span style="color: #ff00ff;">.</span></h2>
+                    <div class="fetch-btn">
+                        CLICK HERE 📄
+                    </div>
+                </a>
+            </div>
+
+            <h2 class="section-title glow-cyan" style="font-size: 2.5rem; letter-spacing: 2px;"><span style="color: #00f5ff; margin-right: 15px;">01.</span>WHO IS R. LEELACHAITANYA?</h2>
+            <div class="glass-card tilt-element about-content" style="border-color: rgba(0, 245, 255, 0.4); box-shadow: 0 0 40px rgba(0, 245, 255, 0.1);">
+                <p style="color: #00f5ff; text-shadow: 0 0 5px rgba(0, 245, 255, 0.5); line-height: 1.8; font-size: 1.1rem; margin-bottom: 20px;">
+                    <strong style="color: #ffffff; text-shadow: 0 0 8px #ffffff; letter-spacing: 1px;">The Engine:</strong> A FastAPI specialist focused on high-concurrency, type-safe backends that power the next generation of AI applications.<br><br>
+                    <strong style="color: #ffffff; text-shadow: 0 0 8px #ffffff; letter-spacing: 1px;">The Brain:</strong> A Gen AI developer obsessed with Agentic RAG, autonomous workflows, and orchestrating LLMs to solve non-deterministic problems.<br><br>
+                    <strong style="color: #ffffff; text-shadow: 0 0 8px #ffffff; letter-spacing: 1px;">The Architecture:</strong> Designing scalable pipelines using Vector Databases, asynchronous processing, and robust API design.<br><br>
+                    <strong style="color: #ffffff; text-shadow: 0 0 8px #ffffff; letter-spacing: 1px;">The Mission:</strong> To transform static data into dynamic intelligence through high-performance automation.<br><br>
+                    <strong style="color: #ffffff; text-shadow: 0 0 8px #ffffff; letter-spacing: 1px;">The DNA:</strong> 50% Latency Optimization, 40% Prompt Engineering, 10% Curiosity.
+                </p>
+                <div style="background: rgba(0, 245, 255, 0.05); padding: 1.5rem; border-left: 4px solid #00f5ff; margin-top: 2rem;">
+                    <p style="color: #e0ffff; font-style: italic; font-size: 1.15rem; line-height: 1.6;">
+                        "I am a quick learner by design and a problem-solver by necessity. I don’t just build apps; I deploy intelligent systems that think, adapt, and scale. I am currently seeking opportunities to build the backbone of the AI-driven web. <strong style="color: #00f5ff; text-shadow: 0 0 10px #00f5ff;">Let’s deploy something sentient.</strong>"
+                    </p>
+                </div>
+            </div>
+        </section>
+        <!-- SKILLS (VARUN PORTFOLIO 3D CLONE) -->
+        <section id="skills" class="container reveal" style="position: relative; padding: 0;">
+            <div style="background: #050816; border-radius: 20px; padding: 4rem 2rem; box-shadow: 0 0 100px rgba(0, 150, 255, 0.1) inset; border: 1px solid rgba(255,255,255,0.05); margin: 0 auto; width: 100%;">
+                <p style="color: #aaa; font-size: 14px; letter-spacing: 2px; margin-bottom: 0.5rem; text-align: center;">WHAT I HAVE BEEN LEARNING</p>
+                <h2 class="section-title glow-cyan" style="font-size: 2.5rem; letter-spacing: 2px; text-align: center;"><span style="color: #39ff14; margin-right: 15px;">02.</span>TECHNOLOGIES</h2>
+                <div id="tech-canvas-container" style="width: 100%; height: 600px; position: relative; cursor: grab; z-index: 10; margin-top: -20px;"></div>
+                
+                <!-- GEN AI EXPERTISE -->
+                <div style="margin-top: 1rem; text-align: center; border-top: 1px solid rgba(255, 0, 255, 0.2); padding-top: 3rem;">
+                    <h3 style="color: #ff00ff; text-shadow: 0 0 15px #ff00ff; font-size: 2.5rem; font-weight: 800; margin-bottom: 2rem;">Gen AI & Orchestration</h3>
+                    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;">
+                        <span style="background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; color: #ff00ff; padding: 12px 24px; border-radius: 50px; font-weight: 600; box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); font-size: 1.1rem;">LangChain & LlamaIndex</span>
+                        <span style="background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; color: #ff00ff; padding: 12px 24px; border-radius: 50px; font-weight: 600; box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); font-size: 1.1rem;">Agentic Workflows</span>
+                        <span style="background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; color: #ff00ff; padding: 12px 24px; border-radius: 50px; font-weight: 600; box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); font-size: 1.1rem;">CrewAI & AutoGen</span>
+                        <span style="background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; color: #ff00ff; padding: 12px 24px; border-radius: 50px; font-weight: 600; box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); font-size: 1.1rem;">Advanced RAG Pipelines</span>
+                        <span style="background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; color: #ff00ff; padding: 12px 24px; border-radius: 50px; font-weight: 600; box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); font-size: 1.1rem;">Vector Databases (Pinecone)</span>
+                        <span style="background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; color: #ff00ff; padding: 12px 24px; border-radius: 50px; font-weight: 600; box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); font-size: 1.1rem;">LLM Fine-Tuning</span>
+                        <span style="background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; color: #ff00ff; padding: 12px 24px; border-radius: 50px; font-weight: 600; box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); font-size: 1.1rem;">Prompt Engineering</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- JAVA & PYTHON -> FUTURE BRIDGE -->
+        <section id="bridge" class="container reveal">
+            <h2 class="section-title"><span class="cyan-text">Legacy to Future:</span> Java & Python &#10142; GenAI</h2>
+            <div class="bridge-container glass-card tilt-element">
+                <div class="tab-wrapper" style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <button class="tab-btn active" data-mode="java" style="background: rgba(0,245,255,0.2); border: 1px solid #00f5ff; color: #fff; padding: 10px 25px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-weight: bold; box-shadow: 0 0 15px rgba(0,245,255,0.4);">Java ☕</button>
+                    <button class="tab-btn" data-mode="python" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 25px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-weight: bold;">Python 🐍</button>
+                    <button class="tab-btn" data-mode="ai" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 25px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-weight: bold;">Gen AI 🧠</button>
+                </div>
+                <div class="code-editor" id="code-editor">
+                    <div class="editor-header">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                        <span class="filename">ApiService.java</span>
+                    </div>
+                    <pre><code id="code-content" class="fira-code">
+// JAVA MODE (Legacy)
+@RestController
+@RequestMapping("/api/v1")
+public class ApiService {
+    
+    @GetMapping("/analyze")
+    public String analyzeData(@RequestParam String input) {
+        // Standard rule-based processing
+        if(input.contains("error")) {
+            return "Error detected in input.";
+        }
+        return "Processed successfully.";
+    }
+}
+                    </code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROJECTS -->
+        <section id="projects" class="container reveal" style="position: relative;">
+            <div class="holo-container left-side" id="holo-projects"></div>
+            <h2 class="section-title"><span style="color: #ff00ff; margin-right: 15px;">03.</span><span class="cyan-text">Featured</span> Projects</h2>
+            <div class="projects-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;">
+                
+                <!-- Project 1: Online Quiz App -->
+                <div class="glass-card curved tilt-element project-card" style="border-top: 3px solid #00f5ff; display: flex; flex-direction: column;">
+                    <div class="project-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="color: #fff; font-size: 1.5rem; margin: 0; text-shadow: 0 0 10px rgba(255,255,255,0.5);">Online Quiz App</h3>
+                        <a href="https://github.com/chaitanya2444/Online-Quiz-Application" target="_blank" style="color: #00f5ff; text-decoration: none; border: 1px solid #00f5ff; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; transition: 0.3s; box-shadow: 0 0 10px rgba(0,245,255,0.2);">Code ↗</a>
+                    </div>
+                    <p style="color: #bbb; line-height: 1.6; margin-bottom: 25px; flex-grow: 1;">A secure, real-time quiz engine with countdown timers, randomized questioning, live evaluation, and strict tab-switch cheating prevention.</p>
+                    <div class="tech-stack" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <span style="background: rgba(0,245,255,0.1); color: #00f5ff; border: 1px solid rgba(0,245,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">ExpressJS</span>
+                        <span style="background: rgba(0,245,255,0.1); color: #00f5ff; border: 1px solid rgba(0,245,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">MongoDB</span>
+                        <span style="background: rgba(0,245,255,0.1); color: #00f5ff; border: 1px solid rgba(0,245,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">JavaScript ES6</span>
+                    </div>
+                </div>
+
+                <!-- Project 2: Gitarch -->
+                <div class="glass-card curved tilt-element project-card" style="border-top: 3px solid #ff00ff; display: flex; flex-direction: column;">
+                    <div class="project-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="color: #fff; font-size: 1.5rem; margin: 0; text-shadow: 0 0 10px rgba(255,255,255,0.5);">Gitarch</h3>
+                        <a href="https://github.com/chaitanya2444/gitarch" target="_blank" style="color: #ff00ff; text-decoration: none; border: 1px solid #ff00ff; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; transition: 0.3s; box-shadow: 0 0 10px rgba(255,0,255,0.2);">Code ↗</a>
+                    </div>
+                    <p style="color: #bbb; line-height: 1.6; margin-bottom: 25px; flex-grow: 1;">An intelligent system architecture agent. Seamlessly fetches live design data via Figma APIs and orchestrates Llama-3 70B to generate highly robust, PDF implementation schemas.</p>
+                    <div class="tech-stack" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <span style="background: rgba(255,0,255,0.1); color: #ff00ff; border: 1px solid rgba(255,0,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">FastAPI</span>
+                        <span style="background: rgba(255,0,255,0.1); color: #ff00ff; border: 1px solid rgba(255,0,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Llama-3 (Groq)</span>
+                        <span style="background: rgba(255,0,255,0.1); color: #ff00ff; border: 1px solid rgba(255,0,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Figma API</span>
+                    </div>
+                </div>
+
+                <!-- Project 3: Figma to PDF -->
+                <div class="glass-card curved tilt-element project-card" style="border-top: 3px solid #39ff14; display: flex; flex-direction: column;">
+                    <div class="project-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="color: #fff; font-size: 1.5rem; margin: 0; text-shadow: 0 0 10px rgba(255,255,255,0.5);">Figma to PDF</h3>
+                    </div>
+                    <p style="color: #bbb; line-height: 1.6; margin-bottom: 25px; flex-grow: 1;">A rigorous automation utility pipeline designed to extract visual typography, hierarchy, and system elements from Figma frames and compile them statically into structured developer-ready PDFs.</p>
+                    <div class="tech-stack" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <span style="background: rgba(57,255,20,0.1); color: #39ff14; border: 1px solid rgba(57,255,20,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">PDF Gen</span>
+                        <span style="background: rgba(57,255,20,0.1); color: #39ff14; border: 1px solid rgba(57,255,20,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">REST API</span>
+                        <span style="background: rgba(57,255,20,0.1); color: #39ff14; border: 1px solid rgba(57,255,20,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Automation</span>
+                    </div>
+                </div>
+
+                <!-- Project 4: Qa-Garden -->
+                <div class="glass-card curved tilt-element project-card" style="border-top: 3px solid #ffbd2e; display: flex; flex-direction: column;">
+                    <div class="project-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="color: #fff; font-size: 1.5rem; margin: 0; text-shadow: 0 0 10px rgba(255,255,255,0.5);">Qa-Garden</h3>
+                    </div>
+                    <p style="color: #bbb; line-height: 1.6; margin-bottom: 25px; flex-grow: 1;">A fully autonomous testing ecosystem orchestrated by 5 specialized AI testing agents. Capable of dynamically offloading manual QA bottlenecks through intelligent deterministic evaluation and generative test generation.</p>
+                    <div class="tech-stack" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <span style="background: rgba(255,189,46,0.1); color: #ffbd2e; border: 1px solid rgba(255,189,46,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Multi-Agent Systems</span>
+                        <span style="background: rgba(255,189,46,0.1); color: #ffbd2e; border: 1px solid rgba(255,189,46,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Autogen / CrewAI</span>
+                        <span style="background: rgba(255,189,46,0.1); color: #ffbd2e; border: 1px solid rgba(255,189,46,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">LLMs</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- EDUCATION -->
+        <section id="education" class="container reveal">
+            <h2 class="section-title"><span style="color: #ffbd2e; margin-right: 15px;">04.</span><span class="cyan-text">Education</span></h2>
+            <div class="timeline">
+                
+                <div class="timeline-item tilt-element glass-card" style="border-left: 2px solid #ffbd2e; margin-bottom: 30px;">
+                    <div class="timeline-dot glow-acid" style="background: #ffbd2e; box-shadow: 0 0 10px #ffbd2e, 0 0 20px #ffbd2e;"></div>
+                    <div class="timeline-content" style="display: flex; flex-direction: column; gap: 15px;">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
+                            <div style="box-shadow: 0 0 10px rgba(255, 189, 46, 0.4); border: 2px solid #ffbd2e; width: 65px; height: 65px; border-radius: 50%; overflow: hidden; flex-shrink: 0;">
+                                <img src="assets/sathyabama.jpg" alt="Sathyabama Campus" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                            </div>
+                            <div>
+                                <h3 style="color: #ffbd2e; margin-bottom: 0;">B.E. in Computer Science (CSE)</h3>
+                                <div style="color: #fff; font-size: 1.1rem; font-weight: 600; margin-top: 5px;">Sathyabama Institute of Science and Technology</div>
+                            </div>
+                        </div>
+                        <span class="date" style="color: #ffbd2e; font-family: 'Fira Code', monospace; display: block;">2020 - 2024</span>
+                        <p style="line-height: 1.6; margin-top: 5px; margin-bottom: 5px;">Graduated with a rigorous foundation in software architecture, data structures, and computational theory. Achieved a dominant mastery in core computer science paradigms.</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 0px;">
+                            <span style="background: rgba(255,189,46,0.1); color: #ffbd2e; border: 1px solid rgba(255,189,46,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;">CGPA: 8.78</span>
+                            <span style="background: rgba(255,189,46,0.1); color: #ffbd2e; border: 1px solid rgba(255,189,46,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Data Structures</span>
+                            <span style="background: rgba(255,189,46,0.1); color: #ffbd2e; border: 1px solid rgba(255,189,46,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Algorithms</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item tilt-element glass-card" style="border-left: 2px solid #ff00ff; margin-bottom: 30px;">
+                    <div class="timeline-dot glow-acid" style="background: #ff00ff; box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;"></div>
+                    <div class="timeline-content" style="display: flex; flex-direction: column; gap: 15px;">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
+                            <div style="box-shadow: 0 0 10px rgba(255, 0, 255, 0.4); border: 2px solid #ff00ff; width: 65px; height: 65px; border-radius: 50%; overflow: hidden; flex-shrink: 0;">
+                                <img src="assets/narayana_inter.jpg" alt="Narayana Intermediate Campus" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                            </div>
+                            <div>
+                                <h3 style="color: #ff00ff; margin-bottom: 0;">Intermediate (MPC Course)</h3>
+                                <div style="color: #fff; font-size: 1.1rem; font-weight: 600; margin-top: 5px;">Narayana Junior College, NAD Campus</div>
+                            </div>
+                        </div>
+                        <span class="date" style="color: #ff00ff; font-family: 'Fira Code', monospace; display: block;">2018 - 2020</span>
+                        <p style="line-height: 1.6; margin-top: 5px; margin-bottom: 5px;">Completed highly rigorous MPC (Mathematics, Physics, Chemistry) curriculum, establishing a profound analytical framework for advanced engineering mechanics.</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 0px;">
+                            <span style="background: rgba(255,0,255,0.1); color: #ff00ff; border: 1px solid rgba(255,0,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;">CGPA: 8.3/10</span>
+                            <span style="background: rgba(255,0,255,0.1); color: #ff00ff; border: 1px solid rgba(255,0,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Mathematics</span>
+                            <span style="background: rgba(255,0,255,0.1); color: #ff00ff; border: 1px solid rgba(255,0,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Physics</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item tilt-element glass-card" style="border-left: 2px solid #00f5ff; margin-bottom: 30px;">
+                    <div class="timeline-dot glow-acid" style="background: #00f5ff; box-shadow: 0 0 10px #00f5ff, 0 0 20px #00f5ff;"></div>
+                    <div class="timeline-content" style="display: flex; flex-direction: column; gap: 15px;">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
+                            <div style="box-shadow: 0 0 10px rgba(0, 245, 255, 0.4); border: 2px solid #00f5ff; width: 65px; height: 65px; border-radius: 50%; overflow: hidden; flex-shrink: 0;">
+                                <img src="assets/narayana_school.png" alt="Narayana EM School" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                            </div>
+                            <div>
+                                <h3 style="color: #00f5ff; margin-bottom: 0;">Secondary School Certificate (SSC)</h3>
+                                <div style="color: #fff; font-size: 1.1rem; font-weight: 600; margin-top: 5px;">Narayana EM High School</div>
+                            </div>
+                        </div>
+                        <span class="date" style="color: #00f5ff; font-family: 'Fira Code', monospace; display: block;">Graduation: 2018</span>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 0px;">
+                            <span style="background: rgba(0,245,255,0.1); color: #00f5ff; border: 1px solid rgba(0,245,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;">CGPA: 9.8/10</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- EXPERIENCE -->
+        <section id="experience" class="container reveal">
+            <h2 class="section-title"><span style="color: #00f5ff; margin-right: 15px;">05.</span><span class="cyan-text">Experience</span></h2>
+            <div class="timeline">
+                <div class="timeline-item tilt-element glass-card" style="border-left: 2px solid #39ff14; margin-bottom: 30px;">
+                    <div class="timeline-dot glow-acid" style="background: #39ff14; box-shadow: 0 0 10px #39ff14, 0 0 20px #39ff14;"></div>
+                    <div class="timeline-content" style="display: flex; flex-direction: column; gap: 15px;">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
+                            <img src="assets/coastal_seven.png" alt="Coastal Seven Logo" style="width: 50px; height: 50px; border-radius: 50%; box-shadow: 0 0 10px rgba(57, 255, 20, 0.4); border: 1px solid #39ff14; object-fit: cover;">
+                            <div>
+                                <h3 style="color: #39ff14; margin-bottom: 0;">Associate AI Engineer (CDE)</h3>
+                                <div style="color: #fff; font-size: 1.1rem; font-weight: 600; margin-top: 5px;">Coastal Seven Technologies</div>
+                            </div>
+                        </div>
+                        <span class="date" style="color: #39ff14; font-family: 'Fira Code', monospace; display: block;">Feb 2026 - Present (Product Engineering)</span>
+                        <p style="line-height: 1.6; margin-top: 5px; margin-bottom: 5px;">Currently driving enterprise AI transformation as a Customer Deploying Engineer. Spearheading the development, optimization, and large-scale deployment of GenAI modules, predictive data modeling, and full-stack integration frameworks.</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 0px;">
+                            <span style="background: rgba(57,255,20,0.1); color: #39ff14; border: 1px solid rgba(57,255,20,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">GenAI Pipelines</span>
+                            <span style="background: rgba(57,255,20,0.1); color: #39ff14; border: 1px solid rgba(57,255,20,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Model Evaluation</span>
+                            <span style="background: rgba(57,255,20,0.1); color: #39ff14; border: 1px solid rgba(57,255,20,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">Full-Stack AI</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item tilt-element glass-card">
+                    <div class="timeline-dot glow-cyan"></div>
+                    <div class="timeline-content">
+                        <h3 style="color: #00f5ff;">HCL Technologies (Mini-Project)</h3>
+                        <span class="date" style="color: #00f5ff;">Jan 2023 - May 2023</span>
+                        <p style="margin-top: 10px; margin-bottom: 20px;">Developed and engineered the <strong>ONLINE QUIZ APPLICATION</strong> as a specialized technical initiative under the MoU agreement with the Engineering and R&D Services (ERS) division.</p>
+                        <img src="assets/cert_hcl.png" alt="HCL Certificate" style="width: 100%; border-radius: 8px; border: 1px solid rgba(0, 245, 255, 0.4); box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);">
+                    </div>
+                </div>
+                
+                <div class="timeline-item tilt-element glass-card">
+                    <div class="timeline-dot glow-magenta" style="background: #ff00ff; box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;"></div>
+                    <div class="timeline-content">
+                        <h3 style="color: #ff00ff;">Algoxfusion Private Limited</h3>
+                        <span class="date" style="color: #ff00ff;">Aug 2022 - Oct 2022</span>
+                        <p style="margin-top: 10px; margin-bottom: 20px;">Awarded a Professional Level certification for the successful completion of an intensive ReactJS Web App Development online course and capstone mini-project.</p>
+                        <img src="assets/cert_algox.png" alt="Algoxfusion Certificate" style="width: 100%; border-radius: 8px; border: 1px solid rgba(255, 0, 255, 0.4); box-shadow: 0 0 20px rgba(255, 0, 255, 0.1);">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT -->
+        <section id="contact" class="container reveal" style="max-width: 1000px;">
+            <h2 class="section-title"><span style="color: #ff4500; margin-right: 15px;">06.</span><span class="cyan-text">Initialize</span> Contact</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 40px; align-items: stretch;">
+                
+                <!-- Left: Form -->
+                <div class="glass-card tilt-element" style="flex: 1; min-width: 300px; padding: 40px; background: rgba(10, 10, 15, 0.7); border-radius: 20px; box-shadow: 0 0 50px rgba(0, 245, 255, 0.1);">
+                    <p style="color: #aaa; font-size: 14px; letter-spacing: 2px; margin-bottom: 5px; text-transform: uppercase;">Get in touch</p>
+                    <h2 style="color: #fff; font-size: 3.5rem; font-weight: 800; margin-bottom: 30px;">Contact.</h2>
+                    
+                    <form class="contact-form" style="display: flex; flex-direction: column; gap: 20px;">
+                        <div>
+                            <label style="color: #fff; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; display: block;">Your Name</label>
+                            <input type="text" placeholder="What's your name?" required style="width: 100%; background: rgba(20, 20, 30, 0.6); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 15px 20px; border-radius: 10px; font-size: 1rem; outline: none; transition: 0.3s;" onfocus="this.style.borderColor='#00f5ff'; this.style.boxShadow='0 0 15px rgba(0,245,255,0.2)';" onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none';">
+                        </div>
+                        <div>
+                            <label style="color: #fff; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; display: block;">Your Email</label>
+                            <input type="email" placeholder="What's your email?" required style="width: 100%; background: rgba(20, 20, 30, 0.6); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 15px 20px; border-radius: 10px; font-size: 1rem; outline: none; transition: 0.3s;" onfocus="this.style.borderColor='#00f5ff'; this.style.boxShadow='0 0 15px rgba(0,245,255,0.2)';" onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none';">
+                        </div>
+                        <div>
+                            <label style="color: #fff; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; display: block;">Your Message</label>
+                            <textarea placeholder="What do you want to say?" rows="4" required style="width: 100%; background: rgba(20, 20, 30, 0.6); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 15px 20px; border-radius: 10px; font-size: 1rem; outline: none; transition: 0.3s; resize: none;" onfocus="this.style.borderColor='#00f5ff'; this.style.boxShadow='0 0 15px rgba(0,245,255,0.2)';" onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none';"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary glow-cyan" style="align-self: flex-start; padding: 12px 30px; font-size: 1rem; font-weight: 700; border-radius: 10px; margin-top: 10px; border: 1px solid #00f5ff; background: rgba(0,245,255,0.1); color: #00f5ff; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#00f5ff'; this.style.color='#000'; this.style.boxShadow='0 0 20px #00f5ff';" onmouseout="this.style.background='rgba(0,245,255,0.1)'; this.style.color='#00f5ff'; this.style.boxShadow='none';">Send</button>
+                    </form>
+                                <!-- Right: Interactive Flip Card -->
+                <div style="flex: 1; min-width: 300px; perspective: 1000px;">
+                    <style>
+                        .flip-card-inner {
+                            position: relative;
+                            width: 100%;
+                            height: 100%;
+                            min-height: 450px;
+                            text-align: center;
+                            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+                            transform-style: preserve-3d;
+                            border-radius: 20px;
+                            cursor: pointer;
+                        }
+                        .flip-card-inner:hover, .flip-card-inner.flipped {
+                            transform: rotateY(180deg);
+                        }
+                        .flip-face {
+                            position: absolute;
+                            width: 100%;
+                            height: 100%;
+                            backface-visibility: hidden;
+                            border-radius: 20px;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: center;
+                            align-items: center;
+                            padding: 40px;
+                        }
+                        .flip-front {
+                            background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(5, 5, 10, 0.8));
+                            border: 1px solid rgba(0, 245, 255, 0.2);
+                            box-shadow: 0 0 50px rgba(0, 245, 255, 0.1);
+                        }
+                        .flip-back {
+                            background: linear-gradient(135deg, rgba(20, 20, 30, 0.9), rgba(5, 5, 10, 0.9));
+                            border: 1px solid rgba(255, 0, 255, 0.2);
+                            box-shadow: 0 0 50px rgba(255, 0, 255, 0.1);
+                            transform: rotateY(180deg);
+                        }
+                    </style>
+                    <div class="flip-card-inner tilt-element" onclick="this.classList.toggle('flipped')">
+                        <!-- Front Face -->
+                        <div class="flip-face flip-front glass-card">
+                            <div style="width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, rgba(0,245,255,0.2), transparent); border: 2px solid #00f5ff; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 900; color: #00f5ff; font-family: 'Inter', sans-serif; letter-spacing: 2px; margin-bottom: 25px; box-shadow: 0 0 25px rgba(0,245,255,0.3);">RLC</div>
+                            <h3 style="color: #fff; font-size: 2.2rem; margin-bottom: 10px; font-weight: 800;">Ravuri Leelachaitanya</h3>
+                            <p style="color: #00f5ff; font-size: 1.1rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">Gen AI Developer</p>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 20px; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1);">
+                                <span style="font-size: 1rem;">📍</span>
+                                <span style="color: #aaa; font-size: 0.9rem; font-family: 'Fira Code', monospace;">Andhra Pradesh, India</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Back Face -->
+                        <div class="flip-face flip-back glass-card">
+                            <h3 style="color: #fff; font-size: 2rem; margin-bottom: 30px; text-shadow: 0 0 10px rgba(255,255,255,0.3);">Let's Connect</h3>
+                            <div style="display: flex; flex-direction: column; gap: 15px; width: 100%;">
+                                <a href="mailto:rleelachaitanya@gmail.com" style="padding: 15px; background: rgba(0,245,255,0.05); border: 1px solid rgba(0,245,255,0.2); border-radius: 12px; color: #00f5ff; text-decoration: none; font-weight: 600; text-align: center; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; font-family: 'Fira Code', monospace;" onmouseover="this.style.background='rgba(0,245,255,0.2)'; this.style.boxShadow='0 0 15px rgba(0,245,255,0.3)';" onmouseout="this.style.background='rgba(0,245,255,0.05)'; this.style.boxShadow='none';"><span style="font-size: 1.2rem;">📧</span> rleelachaitanya@gmail.com</a>
+                                <a href="https://github.com/chaitanya2444" target="_blank" style="padding: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: #fff; text-decoration: none; font-weight: 600; text-align: center; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px;" onmouseover="this.style.background='rgba(255,255,255,0.2)'; this.style.boxShadow='0 0 15px rgba(255,255,255,0.2)';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.boxShadow='none';"><span style="font-size: 1.2rem;">🐙</span> GitHub Profile</a>
+                                <a href="https://www.linkedin.com/in/ravuri-leelachaitanya-361593232/?skipRedirect=true" target="_blank" style="padding: 15px; background: rgba(0,119,181,0.1); border: 1px solid rgba(0,119,181,0.3); border-radius: 12px; color: #00f5ff; text-decoration: none; font-weight: 600; text-align: center; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px;" onmouseover="this.style.background='rgba(0,119,181,0.3)'; this.style.boxShadow='0 0 15px rgba(0,119,181,0.4)';" onmouseout="this.style.background='rgba(0,119,181,0.1)'; this.style.boxShadow='none';"><span style="font-size: 1.2rem;">💼</span> LinkedIn Network</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>        </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Core Engine Scripts -->
+    <script src="tech-balls.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
