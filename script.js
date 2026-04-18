@@ -73,6 +73,7 @@ function showHtmlSection(id) {
         mainEl.style.background = 'rgba(5, 5, 5, 0.85)';
         mainEl.style.backdropFilter = 'blur(15px)';
         mainEl.style.zIndex = '50';
+        mainEl.classList.add('nav-active');
         
         const logo = document.getElementById('global-rlc-logo');
         const footer = document.getElementById('global-rlc-footer');
@@ -110,6 +111,7 @@ function showHtmlSection(id) {
         mainEl.style.background = 'transparent';
         mainEl.style.backdropFilter = 'blur(0px)';
         mainEl.style.zIndex = '1';
+        mainEl.classList.add('nav-active');
 
         const logo = document.getElementById('global-rlc-logo');
         const footer = document.getElementById('global-rlc-footer');
@@ -138,6 +140,7 @@ function hideAllHtmlSections() {
     mainEl.style.overflowY = 'hidden';
     mainEl.style.background = 'transparent';
     mainEl.style.backdropFilter = 'blur(0px)';
+    mainEl.classList.remove('nav-active');
     
     const logo = document.getElementById('global-rlc-logo');
     const footer = document.getElementById('global-rlc-footer');

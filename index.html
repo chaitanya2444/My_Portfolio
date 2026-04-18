@@ -22,7 +22,7 @@
     <canvas id="neural-canvas"></canvas>
 
     <!-- SIDE NAVIGATION MENU -->
-    <nav id="side-nav" style="position: fixed; left: 40px; top: 50%; transform: translateY(-50%); z-index: 100; display: none; flex-direction: column; gap: 15px;">
+    <nav id="side-nav">
         <button class="nav-btn" data-target="all">HOME</button>
         <button class="nav-btn" data-target="about">ABOUT</button>
         <button class="nav-btn" data-target="skills">SKILLS</button>
@@ -32,6 +32,55 @@
         <button class="nav-btn" data-target="contact">CONTACT</button>
     </nav>
     <style>
+        #side-nav {
+            position: fixed; 
+            left: 30px; 
+            top: 55%; 
+            transform: translateY(-50%); 
+            z-index: 100; 
+            display: none; 
+            flex-direction: column; 
+            gap: 12px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* RESPONSIVE SAFE ZONE FOR CONTENT */
+        main {
+            transition: padding-left 0.5s ease;
+        }
+
+        @media (min-width: 1300px) {
+            main.nav-active {
+                padding-left: 280px; /* Push content to center within remaining space */
+            }
+        }
+        
+        @media (max-width: 1299px) and (min-width: 900px) {
+            main.nav-active {
+                padding-left: 200px;
+            }
+            #side-nav {
+                left: 15px;
+                transform: translateY(-50%) scale(0.9);
+            }
+            .nav-btn {
+                padding: 10px 15px 10px 18px !important;
+                font-size: 0.75rem !important;
+                letter-spacing: 2px !important;
+            }
+        }
+
+        @media (max-width: 899px) {
+            #side-nav {
+                left: 10px;
+                transform: translateY(-50%) scale(0.8);
+                gap: 8px;
+            }
+            main.nav-active {
+                padding-left: 0; /* On mobile, we might keep it overlapping or move to bottom, but for now just clear padding */
+            }
+        }
+
         .nav-btn {
             background: rgba(5, 5, 5, 0.4);
             border: 1px solid rgba(0, 245, 255, 0.3);
