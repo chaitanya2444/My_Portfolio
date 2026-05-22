@@ -28,16 +28,16 @@ function initTechBalls() {
     scene2.add(dirLight);
 
     const techs = [
-        { name: "React", url: "https://raw.githubusercontent.com/devicons/devicon/master/icons/react/react-original.svg" },
-        { name: "FastAPI", url: "https://raw.githubusercontent.com/devicons/devicon/master/icons/fastapi/fastapi-original.svg" },
-        { name: "Python", url: "https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" },
-        { name: "Java", url: "https://raw.githubusercontent.com/devicons/devicon/master/icons/java/java-original.svg" },
-        { name: "Docker", url: "https://raw.githubusercontent.com/devicons/devicon/master/icons/docker/docker-original.svg" },
-        { name: "AWS", url: "https://raw.githubusercontent.com/devicons/devicon/master/icons/amazonwebservices/amazonwebservices-original-wordmark.svg" },
-        { name: "Three.js", url: "https://raw.githubusercontent.com/devicons/devicon/master/icons/threejs/threejs-original.svg" },
-        { name: "Spring", url: "https://raw.githubusercontent.com/devicons/devicon/master/icons/spring/spring-original.svg" },
-        { name: "PostgreSQL", url: "https://raw.githubusercontent.com/devicons/devicon/master/icons/postgresql/postgresql-original.svg" },
-        { name: "Git", url: "https://raw.githubusercontent.com/devicons/devicon/master/icons/git/git-original.svg" }
+        { name: "React", url: "assets/logos/react.svg" },
+        { name: "FastAPI", url: "assets/logos/fastapi.svg" },
+        { name: "Python", url: "assets/logos/python.svg" },
+        { name: "Java", url: "assets/logos/java.svg" },
+        { name: "Docker", url: "assets/logos/docker.svg" },
+        { name: "AWS", url: "assets/logos/aws.svg" },
+        { name: "Three.js", url: "assets/logos/threejs.svg" },
+        { name: "Spring", url: "assets/logos/spring.svg" },
+        { name: "PostgreSQL", url: "assets/logos/postgresql.svg" },
+        { name: "Git", url: "assets/logos/git.svg" }
     ];
 
     const balls = [];
@@ -88,12 +88,25 @@ function initTechBalls() {
         nameSprite.position.y = -2.8; // Floating securely below the ball
         group.add(nameSprite);
 
-        // Load the actual multi-color SVG DevIcon onto the stationary badge
-        textureLoader.load(tech.url, (tex) => {
+        // Load the actual multi-color SVG DevIcon onto the stationary badge using Canvas to ensure proper cross-browser rendering size
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 256, 256);
+            ctx.drawImage(img, 0, 0, 256, 256);
+            
+            const tex = new THREE.CanvasTexture(canvas);
             tex.anisotropy = renderer2.capabilities.getMaxAnisotropy();
             badgeMat.map = tex;
             badgeMat.needsUpdate = true;
-        });
+        };
+        img.onerror = (err) => {
+            console.error("Error loading SVG logo: " + tech.name, err);
+        };
+        img.src = tech.url;
 
         scene2.add(group);
         balls.push({ group: group, rock: rock, badge: badge, offset: Math.random() * 100 });
